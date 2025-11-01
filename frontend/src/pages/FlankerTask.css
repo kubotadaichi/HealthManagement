@@ -1,0 +1,232 @@
+.flanker-container {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #1a1a1a;
+  color: #fff;
+}
+
+/* 開始画面 */
+.ready-screen {
+  text-align: center;
+  padding: 2rem;
+  position: relative;
+  max-width: 600px;
+}
+
+.back-button {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  background-color: transparent;
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.back-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.ready-screen h1 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: #2196F3;
+}
+
+.ready-screen p {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+.instructions {
+  background-color: #2a2a2a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 2rem 0;
+}
+
+.instructions p {
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+  font-family: monospace;
+}
+
+.start-button {
+  background-color: #2196F3;
+  color: #fff;
+  padding: 1rem 3rem;
+  font-size: 1.5rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 2rem;
+  font-weight: bold;
+}
+
+.start-button:hover {
+  background-color: #1976D2;
+}
+
+/* タスク画面 */
+.task-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.progress {
+  position: fixed;
+  top: 2rem;
+  font-size: 1.3rem;
+  color: #aaa;
+}
+
+.fixation-cross {
+  font-size: 4rem;
+  color: #fff;
+}
+
+.stimulus-display {
+  font-size: 5rem;
+  font-family: monospace;
+  font-weight: bold;
+  letter-spacing: 0.5rem;
+  color: #fff;
+}
+
+.instructions-hint {
+  font-size: 1.2rem;
+  color: #888;
+}
+
+.feedback {
+  font-size: 2.5rem;
+  font-weight: bold;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+}
+
+.feedback.correct {
+  color: #4CAF50;
+  background-color: rgba(76, 175, 80, 0.1);
+}
+
+.feedback.incorrect {
+  color: #f44336;
+  background-color: rgba(244, 67, 54, 0.1);
+}
+
+/* 結果画面 */
+.result-screen {
+  text-align: center;
+  padding: 2rem;
+  max-width: 700px;
+}
+
+.result-screen h2 {
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  color: #2196F3;
+}
+
+.result-details {
+  background-color: #2a2a2a;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+}
+
+.result-details p {
+  font-size: 1.5rem;
+  margin: 1rem 0;
+}
+
+.result-breakdown {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #444;
+}
+
+.result-breakdown h3 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #2196F3;
+}
+
+.result-breakdown p {
+  font-size: 1.2rem;
+  margin: 0.7rem 0;
+  color: #ccc;
+}
+
+.result-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.save-button,
+.retry-button,
+.back-to-dashboard-button {
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.save-button {
+  background-color: #4CAF50;
+  color: #fff;
+}
+
+.save-button:hover {
+  background-color: #45a049;
+}
+
+.retry-button {
+  background-color: #fff;
+  color: #000;
+}
+
+.retry-button:hover {
+  background-color: #ddd;
+}
+
+.back-to-dashboard-button {
+  background-color: #2196F3;
+  color: #fff;
+}
+
+.back-to-dashboard-button:hover {
+  background-color: #1976D2;
+}
+
+@media (max-width: 768px) {
+  .stimulus-display {
+    font-size: 3rem;
+    letter-spacing: 0.3rem;
+  }
+
+  .result-actions {
+    flex-direction: column;
+  }
+
+  .save-button,
+  .retry-button,
+  .back-to-dashboard-button {
+    width: 100%;
+  }
+}
