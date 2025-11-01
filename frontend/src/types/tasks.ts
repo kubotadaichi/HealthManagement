@@ -7,9 +7,10 @@ export interface PVTResult {
 }
 
 export interface FlankerTrialDetail {
-  trial_type: string;
+  stimulus: string;
   correct: boolean;
-  reaction_time: number;
+  reaction_time_ms: number;
+  congruent: boolean;
 }
 
 export interface FlankerResult {

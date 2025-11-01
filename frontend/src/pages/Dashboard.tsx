@@ -1,39 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { pvtApi, flankerApi, efsiApi, vasApi } from '../services/api';
+import type { PVTResult, FlankerResult, EFSIResult, VASResult } from '../types/tasks';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import './Dashboard.css';
-
-interface PVTResult {
-  id: number;
-  miss_count: number;
-  average_reaction_time: number;
-  all_reaction_times: number[];
-  completed_at: string;
-}
-
-interface FlankerResult {
-  id: number;
-  total_correct: number;
-  congruent_correct: number;
-  incongruent_correct: number;
-  total_trials: number;
-  completed_at: string;
-}
-
-interface EFSIResult {
-  id: number;
-  total_score: number;
-  answers: number[];
-  completed_at: string;
-}
-
-interface VASResult {
-  id: number;
-  sleepiness_score: number;
-  fatigue_score: number;
-  completed_at: string;
-}
 
 export default function Dashboard() {
   const [pvtResults, setPvtResults] = useState<PVTResult[]>([]);
@@ -100,27 +70,8 @@ export default function Dashboard() {
     },
   ];
 
-  const getLatestPVT = () => {
-    if (pvtResults.length === 0) return null;
-    return pvtResults[pvtResults.length - 1];
-  };
-
-  const getLatestFlanker = () => {
-    if (flankerResults.length === 0) return null;
-    return flankerResults[flankerResults.length - 1];
-  };
-
-  const getLatestEFSI = () => {
-    if (efsiResults.length === 0) return null;
-    return efsiResults[efsiResults.length - 1];
-  };
-
-  const getLatestVAS = () => {
-    if (vasResults.length === 0) return null;
-    return vasResults[vasResults.length - 1];
-  };
-
-  const formatDate = (dateString: string) => {
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('ja-JP', {
       month: 'short',

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { PVTResult, FlankerResult, EFSIResult, VASResult } from '../types/tasks';
 
 // 環境変数からAPIのベースURLを取得
 // 本番環境では VITE_API_BASE_URL を設定、開発環境ではlocalhostを使用
@@ -10,46 +11,6 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
 });
-
-// 型定義
-interface PVTResult {
-  id?: number;
-  miss_count: number;
-  average_reaction_time: number;
-  all_reaction_times: number[];
-  completed_at?: string;
-}
-
-interface FlankerTrial {
-  stimulus: string;
-  correct: boolean;
-  reaction_time_ms: number;
-  congruent: boolean;
-}
-
-interface FlankerResult {
-  id?: number;
-  total_correct: number;
-  congruent_correct: number;
-  incongruent_correct: number;
-  total_trials: number;
-  trial_details?: FlankerTrial[];
-  completed_at?: string;
-}
-
-interface EFSIResult {
-  id?: number;
-  total_score: number;
-  answers: number[];
-  completed_at?: string;
-}
-
-interface VASResult {
-  id?: number;
-  sleepiness_score: number;
-  fatigue_score: number;
-  completed_at?: string;
-}
 
 // PVT API
 export const pvtApi = {
@@ -81,7 +42,7 @@ export const flankerApi = {
 
 // EFSI API
 export const efsiApi = {
-  create: async (data: Omit<EFSIResult, 'id' | 'completed_at' | 'total_score'>) => {
+  create: async (data: Omit<EFSIResult, 'id' | 'completed_at'>) => {
     const response = await api.post<EFSIResult>('/tasks/efsi', data);
     return response.data;
   },
