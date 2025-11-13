@@ -7,7 +7,6 @@ click==8.3.0
 ecdsa==0.19.1
 fastapi==0.120.4
 h11==0.16.0
--e file:///Users/kubotadaichi/dev/projects/HealthManagement/backend
 httpcore==1.0.9
 httpx==0.28.1
 idna==3.11
