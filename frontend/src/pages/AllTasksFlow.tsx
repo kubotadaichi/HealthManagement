@@ -4,7 +4,7 @@ import { allTasksApi } from '../services/api';
 import type { PVTResult, FlankerResult, EFSIResult, VASResult } from '../types/tasks';
 import './AllTasksFlow.css';
 
-type TaskStep = 'intro' | 'pvt' | 'flanker' | 'efsi' | 'vas' | 'complete';
+type TaskStep = 'intro' | 'pvt' | 'flanker' | 'efsi' | 'vas' | 'save-selection' | 'complete';
 
 // PVTタスクのロジックをインポート
 import PVTTask from './PVTTask';
@@ -71,7 +71,7 @@ export default function AllTasksFlow() {
 
   const handleVASComplete = async (result: Omit<VASResult, 'id' | 'completed_at'>) => {
     resultsRef.current.vas = result;
-    await saveAllResults();
+    setCurrentStep('save-selection');
   };
 
   const skipVAS = async () => {
@@ -79,10 +79,10 @@ export default function AllTasksFlow() {
       sleepiness_score: 50,
       fatigue_score: 60
     };
-    await saveAllResults();
+    setCurrentStep('save-selection');
   };
 
-  const saveAllResults = async () => {
+  const saveToDatabase = async () => {
     if (!resultsRef.current.pvt || !resultsRef.current.flanker || 
         !resultsRef.current.efsi || !resultsRef.current.vas) {
       alert('すべてのタスク結果が揃っていません');
@@ -121,6 +121,7 @@ export default function AllTasksFlow() {
       return;
     }
 
+    setIsSaving(true);
     try {
       const dataToSend = {
         pvt: resultsRef.current.pvt,
@@ -139,10 +140,14 @@ export default function AllTasksFlow() {
       if (response.notion_url) {
         window.open(response.notion_url, '_blank');
       }
+      
+      setCurrentStep('complete');
     } catch (error) {
       console.error('Notionへの保存に失敗しました:', error);
       const err = error as { response?: { data?: { detail?: string } }; message?: string };
       alert(`Notionへの保存に失敗しました: ${err.response?.data?.detail || err.message || '不明なエラー'}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -234,14 +239,62 @@ export default function AllTasksFlow() {
     );
   }
 
+  if (currentStep === 'save-selection') {
+    return (
+      <div className="all-tasks-container">
+        <div className="save-selection-screen">
+          <div className="success-icon">✓</div>
+          <h1>すべてのタスクが完了しました！</h1>
+          <p className="completion-message">
+            お疲れ様でした。<br />
+            結果の保存方法を選択してください。
+          </p>
+          
+          <div className="results-summary">
+            <h2>実施したタスク</h2>
+            <ul>
+              <li>✓ PVT（覚醒度検査）</li>
+              <li>✓ Flanker Task（実行機能検査）</li>
+              <li>✓ EFSI（過労徴候しらべ）</li>
+              <li>✓ VAS（主観調査）</li>
+            </ul>
+          </div>
+
+          <div className="save-options">
+            <button 
+              className="btn-primary" 
+              onClick={saveToDatabase}
+              disabled={isSaving}
+            >
+              {isSaving ? '保存中...' : '💾 データベースに保存'}
+            </button>
+            <button 
+              className="btn-notion" 
+              onClick={saveToNotion}
+              disabled={isSaving}
+            >
+              {isSaving ? '保存中...' : '📝 Notionに保存'}
+            </button>
+            <button 
+              className="btn-secondary" 
+              onClick={goToDashboard}
+              disabled={isSaving}
+            >
+              🏠 保存せずにホームに戻る
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (currentStep === 'complete') {
     return (
       <div className="all-tasks-container">
         <div className="complete-screen">
           <div className="success-icon">✓</div>
-          <h1>すべてのタスクが完了しました！</h1>
+          <h1>保存が完了しました！</h1>
           <p className="completion-message">
-            お疲れ様でした。<br />
             すべてのタスク結果が正常に保存されました。
           </p>
           
@@ -256,15 +309,8 @@ export default function AllTasksFlow() {
           </div>
 
           <div className="completion-actions">
-            <button className="btn-secondary" onClick={goToDashboard}>
+            <button className="btn-primary" onClick={goToDashboard}>
               🏠 ホームに戻る
-            </button>
-            <button 
-              className="btn-notion" 
-              onClick={saveToNotion}
-              title="結果をNotionに送信"
-            >
-              📝 Notionに保存
             </button>
           </div>
         </div>
