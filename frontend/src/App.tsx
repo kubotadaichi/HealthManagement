@@ -4,6 +4,7 @@ import PVTTask from './pages/PVTTask';
 import FlankerTask from './pages/FlankerTask';
 import EFSITask from './pages/EFSITask';
 import VASTask from './pages/VASTask';
+import AllTasksFlow from './pages/AllTasksFlow';
 import './App.css';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route path="/tasks/flanker" element={<FlankerTask />} />
         <Route path="/tasks/efsi" element={<EFSITask />} />
         <Route path="/tasks/vas" element={<VASTask />} />
+        <Route path="/tasks/all" element={<AllTasksFlow />} />
       </Routes>
     </BrowserRouter>
   );

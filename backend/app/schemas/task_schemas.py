@@ -50,8 +50,8 @@ class FlankerResultResponse(BaseModel):
 # EFSI Schemas
 class EFSIResultCreate(BaseModel):
     """EFSI結果作成用スキーマ"""
-    total_score: int = Field(..., ge=0, le=78, description="総得点")
-    answers: List[int] = Field(..., min_length=26, max_length=26, description="26問の回答（0-3）")
+    total_score: int = Field(..., ge=26, le=104, description="総得点（26問×1-4点）")
+    answers: List[int] = Field(..., min_length=26, max_length=26, description="26問の回答（1-4）")
 
 
 class EFSIResultResponse(BaseModel):
@@ -77,6 +77,28 @@ class VASResultResponse(BaseModel):
     id: int
     sleepiness_score: int
     fatigue_score: int
+    completed_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# All Tasks Combined Schema
+class AllTasksResultCreate(BaseModel):
+    """全タスク結果一括作成用スキーマ"""
+    pvt: PVTResultCreate
+    flanker: FlankerResultCreate
+    efsi: EFSIResultCreate
+    vas: VASResultCreate
+
+
+class AllTasksResultResponse(BaseModel):
+    """全タスク結果一括レスポンススキーマ"""
+    pvt: PVTResultResponse
+    flanker: FlankerResultResponse
+    efsi: EFSIResultResponse
+    vas: VASResultResponse
+    session_id: str = Field(..., description="セッションID")
     completed_at: datetime
 
     class Config:

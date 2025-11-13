@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { pvtApi } from '../services/api';
+import type { PVTResult } from '../types/tasks';
 import './PVTTask.css';
 
 const TASK_DURATION = 3 * 60 * 1000; // 3分（ミリ秒）
@@ -10,7 +11,12 @@ const MAX_WAIT_TIME = 10000; // 最大待機時間（ミリ秒）
 
 type TaskState = 'ready' | 'waiting' | 'stimulus' | 'feedback' | 'finished';
 
-export default function PVTTask() {
+interface PVTTaskProps {
+  isFlowMode?: boolean;
+  onFlowComplete?: (result: Omit<PVTResult, 'id' | 'completed_at'>) => void;
+}
+
+export default function PVTTask({ isFlowMode = false, onFlowComplete }: PVTTaskProps) {
   const navigate = useNavigate();
   const [taskState, setTaskState] = useState<TaskState>('ready');
   const [counter, setCounter] = useState(0);
@@ -135,17 +141,25 @@ export default function PVTTask() {
       ? allReactionTimes.reduce((a, b) => a + b, 0) / allReactionTimes.length
       : 0;
 
-    try {
-      await pvtApi.create({
-        miss_count: missCount,
-        average_reaction_time: averageRT,
-        all_reaction_times: allReactionTimes,
-      });
-      alert('結果を保存しました！');
-      setTaskState('ready');
-    } catch (error) {
-      console.error('結果の保存に失敗しました:', error);
-      alert('結果の保存に失敗しました');
+    const resultData = {
+      miss_count: missCount,
+      average_reaction_time: averageRT,
+      all_reaction_times: allReactionTimes,
+    };
+
+    if (isFlowMode && onFlowComplete) {
+      // フローモード：結果を親コンポーネントに渡して次のタスクへ
+      onFlowComplete(resultData);
+    } else {
+      // 通常モード：DBに保存
+      try {
+        await pvtApi.create(resultData);
+        alert('結果を保存しました！');
+        setTaskState('ready');
+      } catch (error) {
+        console.error('結果の保存に失敗しました:', error);
+        alert('結果の保存に失敗しました');
+      }
     }
   };
 
@@ -181,9 +195,11 @@ export default function PVTTask() {
     <div className="pvt-container">
       {taskState === 'ready' && (
         <div className="ready-screen">
-          <button onClick={() => navigate('/')} className="back-button">
-            ← ダッシュボードに戻る
-          </button>
+          {!isFlowMode && (
+            <button onClick={() => navigate('/')} className="back-button">
+              ← ダッシュボードに戻る
+            </button>
+          )}
           <h1>PVT 覚醒度検査</h1>
           <p>画面中央の枠内に数字が表示されたら、できるだけ早くPUSHボタンを押してください。</p>
           <p>所要時間: 3分</p>
@@ -235,14 +251,18 @@ export default function PVTTask() {
           </div>
           <div className="result-actions">
             <button onClick={saveResult} className="save-button">
-              結果を保存
+              {isFlowMode ? '次のタスクへ' : '結果を保存'}
             </button>
-            <button onClick={() => setTaskState('ready')} className="retry-button">
-              もう一度
-            </button>
-            <button onClick={() => navigate('/')} className="back-to-dashboard-button">
-              ダッシュボードに戻る
-            </button>
+            {!isFlowMode && (
+              <>
+                <button onClick={() => setTaskState('ready')} className="retry-button">
+                  もう一度
+                </button>
+                <button onClick={() => navigate('/')} className="back-to-dashboard-button">
+                  ダッシュボードに戻る
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

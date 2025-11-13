@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { PVTResult, FlankerResult, EFSIResult, VASResult } from '../types/tasks';
+import type { PVTResult, FlankerResult, EFSIResult, VASResult, AllTasksResult } from '../types/tasks';
 
 // 環境変数からAPIのベースURLを取得
 // 本番環境では VITE_API_BASE_URL を設定、開発環境ではlocalhostを使用
@@ -60,6 +60,33 @@ export const vasApi = {
   },
   getAll: async () => {
     const response = await api.get<VASResult[]>('/tasks/vas');
+    return response.data;
+  },
+};
+
+// All Tasks API
+export const allTasksApi = {
+  create: async (data: {
+    pvt: Omit<PVTResult, 'id' | 'completed_at'>;
+    flanker: Omit<FlankerResult, 'id' | 'completed_at'>;
+    efsi: Omit<EFSIResult, 'id' | 'completed_at'>;
+    vas: Omit<VASResult, 'id' | 'completed_at'>;
+  }) => {
+    const response = await api.post<AllTasksResult>('/tasks/all', data);
+    return response.data;
+  },
+  saveToNotion: async (data: {
+    pvt: Omit<PVTResult, 'id' | 'completed_at'>;
+    flanker: Omit<FlankerResult, 'id' | 'completed_at'>;
+    efsi: Omit<EFSIResult, 'id' | 'completed_at'>;
+    vas: Omit<VASResult, 'id' | 'completed_at'>;
+  }) => {
+    const response = await api.post<{
+      success: boolean;
+      message: string;
+      notion_page_id: string;
+      notion_url: string;
+    }>('/tasks/notion/save', data);
     return response.data;
   },
 };

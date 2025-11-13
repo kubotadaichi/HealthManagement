@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { efsiApi } from '../services/api';
+import type { EFSIResult } from '../types/tasks';
 import './EFSITask.css';
 
 const QUESTIONS = [
@@ -15,7 +16,7 @@ const QUESTIONS = [
   '9. ねむい',
   '10. 気分が悪い',
   '11. 息切れがする',
-  '12. 動悸がする',
+  '12. 動捨がする',
   '13. やる気がでない',
   '14. 口が渇く',
   '15. 声がかれる',
@@ -39,7 +40,12 @@ const SCALE_LABELS = [
   'いつもある'
 ];
 
-export default function EFSITask() {
+interface EFSITaskProps {
+  isFlowMode?: boolean;
+  onFlowComplete?: (result: Omit<EFSIResult, 'id' | 'completed_at'>) => void;
+}
+
+export default function EFSITask({ isFlowMode = false, onFlowComplete }: EFSITaskProps) {
   const navigate = useNavigate();
   const [answers, setAnswers] = useState<number[]>(new Array(26).fill(-1));
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -51,11 +57,11 @@ export default function EFSITask() {
   };
 
   const isAllAnswered = () => {
-    return answers.every(answer => answer >= 0);
+    return answers.every(answer => answer >= 1 && answer <= 4);
   };
 
   const getTotalScore = () => {
-    return answers.reduce((sum, answer) => sum + (answer >= 0 ? answer : 0), 0);
+    return answers.reduce((sum, answer) => sum + (answer >= 1 ? answer : 0), 0);
   };
 
   const getRiskLevel = (score: number) => {
@@ -75,16 +81,24 @@ export default function EFSITask() {
   const saveResult = async () => {
     const totalScore = getTotalScore();
 
-    try {
-      await efsiApi.create({
-        total_score: totalScore,
-        answers: answers
-      });
-      alert('結果を保存しました！');
-      resetTask();
-    } catch (error) {
-      console.error('結果の保存に失敗しました:', error);
-      alert('結果の保存に失敗しました');
+    const resultData = {
+      total_score: totalScore,
+      answers: answers
+    };
+
+    if (isFlowMode && onFlowComplete) {
+      // フローモード：結果を親コンポーネントに渡して次のタスクへ
+      onFlowComplete(resultData);
+    } else {
+      // 通常モード：DBに保存
+      try {
+        await efsiApi.create(resultData);
+        alert('結果を保存しました！');
+        resetTask();
+      } catch (error) {
+        console.error('結果の保存に失敗しました:', error);
+        alert('結果の保存に失敗しました');
+      }
     }
   };
 
@@ -134,14 +148,18 @@ export default function EFSITask() {
           </div>
           <div className="result-actions">
             <button onClick={saveResult} className="save-button">
-              結果を保存
+              {isFlowMode ? '次のタスクへ' : '結果を保存'}
             </button>
-            <button onClick={resetTask} className="retry-button">
-              もう一度
-            </button>
-            <button onClick={() => navigate('/')} className="back-to-dashboard-button">
-              ダッシュボードに戻る
-            </button>
+            {!isFlowMode && (
+              <>
+                <button onClick={resetTask} className="retry-button">
+                  もう一度
+                </button>
+                <button onClick={() => navigate('/')} className="back-to-dashboard-button">
+                  ダッシュボードに戻る
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -168,21 +186,24 @@ export default function EFSITask() {
             <div key={index} className="question-block">
               <p className="question-text">{question}</p>
               <div className="scale-options">
-                {SCALE_LABELS.map((label, value) => (
-                  <label key={value} className="scale-option">
-                    <input
-                      type="radio"
-                      name={`question-${index}`}
-                      value={value}
-                      checked={answers[index] === value}
-                      onChange={() => handleAnswerChange(index, value)}
-                    />
-                    <span className="option-label">
-                      <span className="option-value">{value}</span>
-                      <span className="option-text">{label}</span>
-                    </span>
-                  </label>
-                ))}
+                {SCALE_LABELS.map((label, scaleIndex) => {
+                  const value = scaleIndex + 1; // 1-4点に変換
+                  return (
+                    <label key={scaleIndex} className="scale-option">
+                      <input
+                        type="radio"
+                        name={`question-${index}`}
+                        value={value}
+                        checked={answers[index] === value}
+                        onChange={() => handleAnswerChange(index, value)}
+                      />
+                      <span className="option-label">
+                        <span className="option-value">{value}</span>
+                        <span className="option-text">{label}</span>
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
           ))}

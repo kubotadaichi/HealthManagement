@@ -109,6 +109,50 @@
   color: #888;
 }
 
+.response-buttons-fixed {
+  position: fixed;
+  bottom: 3rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2rem;
+  z-index: 100;
+}
+
+.response-buttons {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+.response-button {
+  font-size: 3rem;
+  font-weight: bold;
+  padding: 1rem 2rem;
+  background-color: #2a2a2a;
+  color: #fff;
+  border: 3px solid #2196F3;
+  border-radius: 12px;
+  cursor: pointer;
+  min-width: 100px;
+  transition: all 0.2s;
+}
+
+.response-button:hover:not(:disabled) {
+  background-color: #2196F3;
+  transform: scale(1.05);
+}
+
+.response-button:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.response-button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  border-color: #555;
+}
+
 .feedback {
   font-size: 2.5rem;
   font-weight: bold;
@@ -218,6 +262,16 @@
   .stimulus-display {
     font-size: 3rem;
     letter-spacing: 0.3rem;
+  }
+
+  .response-buttons {
+    gap: 1rem;
+  }
+
+  .response-button {
+    font-size: 2rem;
+    padding: 0.8rem 1.5rem;
+    min-width: 80px;
   }
 
   .result-actions {

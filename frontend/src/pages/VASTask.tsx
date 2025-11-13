@@ -1,9 +1,16 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { vasApi } from '../services/api';
+import type { VASResult } from '../types/tasks';
 import './VASTask.css';
 
-export default function VASTask() {
+interface VASTaskProps {
+  isFlowMode?: boolean;
+  onFlowComplete?: (result: Omit<VASResult, 'id' | 'completed_at'>) => void;
+  isSaving?: boolean;
+}
+
+export default function VASTask({ isFlowMode = false, onFlowComplete, isSaving = false }: VASTaskProps) {
   const navigate = useNavigate();
   const [sleepinessScore, setSleepinessScore] = useState(50);
   const [fatigueScore, setFatigueScore] = useState(50);
@@ -30,16 +37,24 @@ export default function VASTask() {
   };
 
   const saveResult = async () => {
-    try {
-      await vasApi.create({
-        sleepiness_score: sleepinessScore,
-        fatigue_score: fatigueScore
-      });
-      alert('結果を保存しました！');
-      resetTask();
-    } catch (error) {
-      console.error('結果の保存に失敗しました:', error);
-      alert('結果の保存に失敗しました');
+    const resultData = {
+      sleepiness_score: sleepinessScore,
+      fatigue_score: fatigueScore
+    };
+
+    if (isFlowMode && onFlowComplete) {
+      // フローモード：結果を親コンポーネントに渡して次のタスクへ
+      onFlowComplete(resultData);
+    } else {
+      // 通常モード：DBに保存
+      try {
+        await vasApi.create(resultData);
+        alert('結果を保存しました！');
+        resetTask();
+      } catch (error) {
+        console.error('結果の保存に失敗しました:', error);
+        alert('結果の保存に失敗しました');
+      }
     }
   };
 
@@ -106,15 +121,19 @@ export default function VASTask() {
           </div>
 
           <div className="result-actions">
-            <button onClick={saveResult} className="save-button">
-              結果を保存
+            <button onClick={saveResult} className="save-button" disabled={isSaving}>
+              {isSaving ? '保存中...' : isFlowMode ? '全てのタスクを保存' : '結果を保存'}
             </button>
-            <button onClick={resetTask} className="retry-button">
-              もう一度
-            </button>
-            <button onClick={() => navigate('/')} className="back-to-dashboard-button">
-              ダッシュボードに戻る
-            </button>
+            {!isFlowMode && (
+              <>
+                <button onClick={resetTask} className="retry-button">
+                  もう一度
+                </button>
+                <button onClick={() => navigate('/')} className="back-to-dashboard-button">
+                  ダッシュボードに戻る
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -127,9 +146,11 @@ export default function VASTask() {
   return (
     <div className="vas-container">
       <div className="assessment-screen">
-        <button onClick={() => navigate('/')} className="back-button">
-          ← ダッシュボードに戻る
-        </button>
+        {!isFlowMode && (
+          <button onClick={() => navigate('/')} className="back-button">
+            ← ダッシュボードに戻る
+          </button>
+        )}
 
         <div className="header">
           <h1>VAS - 主観調査</h1>

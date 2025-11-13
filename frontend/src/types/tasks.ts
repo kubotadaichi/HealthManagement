@@ -36,3 +36,12 @@ export interface VASResult {
   fatigue_score: number;
   completed_at?: string;
 }
+
+export interface AllTasksResult {
+  pvt: PVTResult;
+  flanker: FlankerResult;
+  efsi: EFSIResult;
+  vas: VASResult;
+  session_id: string;
+  completed_at: string;
+}

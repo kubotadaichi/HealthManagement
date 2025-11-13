@@ -1,5 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
+
+# 環境変数を読み込む
+load_dotenv()
 
 from app.database import engine, Base
 from app.models import task_results  # モデルをインポートしてテーブル作成
@@ -14,8 +19,6 @@ app = FastAPI(title="Health Management API")
 app.include_router(tasks.router)
 
 # CORS設定
-import os
-
 # 環境変数から許可するオリジンを取得
 allowed_origins = os.getenv(
     "FRONTEND_URL",

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { flankerApi } from '../services/api';
+import type { FlankerResult } from '../types/tasks';
 import './FlankerTask.css';
 
 const TOTAL_TRIALS = 100;
@@ -21,7 +22,12 @@ interface TrialResult {
   reactionTime: number | null;
 }
 
-export default function FlankerTask() {
+interface FlankerTaskProps {
+  isFlowMode?: boolean;
+  onFlowComplete?: (result: Omit<FlankerResult, 'id' | 'completed_at'>) => void;
+}
+
+export default function FlankerTask({ isFlowMode = false, onFlowComplete }: FlankerTaskProps) {
   const navigate = useNavigate();
   const [taskState, setTaskState] = useState<TaskState>('ready');
   const [currentTrial, setCurrentTrial] = useState(0);
@@ -195,30 +201,35 @@ export default function FlankerTask() {
     const congruentCorrect = congruent.filter(r => r.isCorrect).length;
     const incongruentCorrect = incongruent.filter(r => r.isCorrect).length;
 
-    try {
-      // バックエンドのスキーマに合わせてデータを変換
-      const formattedTrialDetails = trialResults.map(trial => ({
+    const resultData = {
+      total_correct: totalCorrect,
+      congruent_correct: congruentCorrect,
+      incongruent_correct: incongruentCorrect,
+      total_trials: TOTAL_TRIALS,
+      trial_details: trialResults.map(trial => ({
         stimulus: trial.stimulus,
         correct: trial.isCorrect,
         reaction_time_ms: trial.reactionTime || 0,
         congruent: trial.type === 'congruent'
-      }));
+      }))
+    };
 
-      await flankerApi.create({
-        total_correct: totalCorrect,
-        congruent_correct: congruentCorrect,
-        incongruent_correct: incongruentCorrect,
-        total_trials: TOTAL_TRIALS,
-        trial_details: formattedTrialDetails
-      });
-      alert('結果を保存しました！');
-      clearAllTimers();
-      setTaskState('ready');
-      setCurrentTrial(0);
-      setTrialResults([]);
-    } catch (error) {
-      console.error('結果の保存に失敗しました:', error);
-      alert('結果の保存に失敗しました');
+    if (isFlowMode && onFlowComplete) {
+      // フローモード：結果を親コンポーネントに渡して次のタスクへ
+      onFlowComplete(resultData);
+    } else {
+      // 通常モード：DBに保存
+      try {
+        await flankerApi.create(resultData);
+        alert('結果を保存しました！');
+        clearAllTimers();
+        setTaskState('ready');
+        setCurrentTrial(0);
+        setTrialResults([]);
+      } catch (error) {
+        console.error('結果の保存に失敗しました:', error);
+        alert('結果の保存に失敗しました');
+      }
     }
   };
 
@@ -272,9 +283,11 @@ export default function FlankerTask() {
     <div className="flanker-container">
       {taskState === 'ready' && (
         <div className="ready-screen">
-          <button onClick={() => { clearAllTimers(); navigate('/'); }} className="back-button">
-            ← ダッシュボードに戻る
-          </button>
+          {!isFlowMode && (
+            <button onClick={() => { clearAllTimers(); navigate('/'); }} className="back-button">
+              ← ダッシュボードに戻る
+            </button>
+          )}
           <h1>Flanker タスク</h1>
           <p>画面中央に表示される5つの矢印のうち、<strong>中央の矢印</strong>の向きを答えてください。</p>
           <div className="instructions">
@@ -309,6 +322,25 @@ export default function FlankerTask() {
         </div>
       )}
 
+      {(taskState === 'fixation' || taskState === 'stimulus' || taskState === 'feedback') && (
+        <div className="response-buttons-fixed">
+          <button 
+            onClick={() => taskState === 'stimulus' && !responded && handleResponse('left')} 
+            className="response-button left-button"
+            disabled={taskState !== 'stimulus' || responded}
+          >
+            &lt;
+          </button>
+          <button 
+            onClick={() => taskState === 'stimulus' && !responded && handleResponse('right')} 
+            className="response-button right-button"
+            disabled={taskState !== 'stimulus' || responded}
+          >
+            &gt;
+          </button>
+        </div>
+      )}
+
       {taskState === 'feedback' && (
         <div className="task-screen">
           <div className="progress">
@@ -335,14 +367,18 @@ export default function FlankerTask() {
           </div>
           <div className="result-actions">
             <button onClick={saveResult} className="save-button">
-              結果を保存
+              {isFlowMode ? '次のタスクへ' : '結果を保存'}
             </button>
-            <button onClick={() => { clearAllTimers(); setTaskState('ready'); setCurrentTrial(0); setTrialResults([]); }} className="retry-button">
-              もう一度
-            </button>
-            <button onClick={() => { clearAllTimers(); navigate('/'); }} className="back-to-dashboard-button">
-              ダッシュボードに戻る
-            </button>
+            {!isFlowMode && (
+              <>
+                <button onClick={() => { clearAllTimers(); setTaskState('ready'); setCurrentTrial(0); setTrialResults([]); }} className="retry-button">
+                  もう一度
+                </button>
+                <button onClick={() => { clearAllTimers(); navigate('/'); }} className="back-to-dashboard-button">
+                  ダッシュボードに戻る
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}

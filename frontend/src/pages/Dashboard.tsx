@@ -121,10 +121,12 @@ export default function Dashboard() {
       <header className="dashboard-header">
         <h1>疲労チェッカー</h1>
         <p>体調管理のための4つのタスク</p>
+        <Link to="/tasks/all" className="all-tasks-button">
+          🎯 全てのタスクを実行
+        </Link>
       </header>
 
-      <div className="task-grid">
-        {tasks.map((task) => (
+      <div className="task-grid">{tasks.map((task) => (
           <Link
             key={task.id}
             to={task.path}
