@@ -15,10 +15,7 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Health Management API")
 
-# ルーターを登録
-app.include_router(tasks.router)
-
-# CORS設定
+# CORS設定 - ルーター登録の前に設定する必要がある
 # 環境変数から許可するオリジンを取得
 allowed_origins = os.getenv(
     "FRONTEND_URL",
@@ -32,6 +29,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ルーターを登録
+app.include_router(tasks.router)
 
 
 @app.get("/")

@@ -42,8 +42,9 @@ class NotionService:
         pvt = task_results.get("pvt", {})
         pvt_avg_reaction = pvt.get("average_reaction_time", 0)
         pvt_miss_count = pvt.get("miss_count", 0)
-        pvt_total_trials = len(pvt.get("all_reaction_times", []))
-        pvt_accuracy = ((pvt_total_trials - pvt_miss_count) / pvt_total_trials * 100) if pvt_total_trials > 0 else 0
+        pvt_correct_trials = len(pvt.get("all_reaction_times", []))  # 正解数（見逃しを除く）
+        pvt_total_trials = pvt_correct_trials + pvt_miss_count  # 実際の全試行数
+        pvt_accuracy = (pvt_correct_trials / pvt_total_trials * 100) if pvt_total_trials > 0 else 0
 
         # Flanker結果の処理
         flanker = task_results.get("flanker", {})
